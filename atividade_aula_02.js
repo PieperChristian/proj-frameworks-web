@@ -9,33 +9,45 @@ const metricas = {};
 const usuariosCache = null;
  
 // Busca dados do dashboard
-function carregarDashboard(periodo, callback) {
-  const url = BASE_URL + '/metricas?periodo=' + periodo;
-  fetch(url)
-    .then(function(resposta) {
-      return resposta.json();
-    })
-    .then(function(dados) {
-      const vendas = dados.vendas;
-      const temp = [];
-      for (let i = 0; i < vendas.length; i++) {
-        if (vendas[i].status == 'aprovada') {
-          temp.push(vendas[i]);
-        }
-      }
-      const resultado = {};
-      resultado.total = 0;
-      resultado.quantidade = temp.length;
-      resultado.itens = temp;
-      for (let i = 0; i < temp.length; i++) {
-        resultado.total = resultado.total + temp[i].valor;
-      }
-      resultado.totalComImposto = resultado.total + (resultado.total * TAXA_IMPOSTO);
-      callback(null, resultado);
-    })
-    .catch(function(erro) {
-      callback(erro, null);
+async function carregarDashboard(periodo) {
+  const url = new URL('/metricas', BASE_URL);
+  url.searchParams.set('periodo', periodo);
+
+  try {
+    const response = await fetch(url.toString());
+
+    if (!response.ok) {
+      throw new Error(
+        'Falha ao carregar dashboard: HTTP ' +
+          response.status +
+          ' ' +
+          response.statusText +
+          ' (periodo=' +
+          periodo +
+          ')'
+      );
+    }
+
+    const dados = await response.json();
+    const vendas = Array.isArray(dados && dados.vendas) ? dados.vendas : [];
+
+    const itens = vendas.filter(function(venda) {
+      return venda.status === 'aprovada';
     });
+
+    const total = itens.reduce(function(acumulado, item) {
+      return acumulado + item.valor;
+    }, 0);
+
+    return {
+      total: total,
+      quantidade: itens.length,
+      itens: itens,
+      totalComImposto: total + (total * TAXA_IMPOSTO)
+    };
+  } catch (error) {
+    throw new Error('Erro em carregarDashboard (periodo=' + periodo + '): ' + error.message);
+  }
 }
  
 // Formata relatÃ³rio para exibiÃ§Ã£o
