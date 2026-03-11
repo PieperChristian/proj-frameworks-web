@@ -1,9 +1,9 @@
 // dashboard.js â€” MÃ³dulo de MÃ©tricas de Vendas
 // Gerado automaticamente â€” aguardando review
  
-const BASE_URL = 'https://api.empresa.com';
-const TAXA_IMPOSTO = 0.15;
-const LIMITE_ALERTA = 100;
+var BASE_URL = 'https://api.empresa.com';
+var TAXA_IMPOSTO = 0.15;
+var LIMITE_ALERTA = 100;
  
 var metricas = {};
 var usuariosCache = null;
